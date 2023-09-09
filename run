@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Check for the command passed as an argument
+if [ "$1" == "install" ]; then
+    # Install Node.js dependencies
+    echo "Installing Node.js dependencies..."
+    npm install
+    exit $?
+elif [ "$1" == "test" ]; then
+    # Run the test suite
+    echo "Running tests..."
+    npm test
+    exit $?
+elif [ "$1" == "URL_FILE" ]; then
+    # Run the URL analysis (replace './dist/main.js' with the actual path to your script)
+    
+    echo " URL_FILE: $2"
+    node ./dist/main.js "$2"
+    exit $?
+else
+    # Invalid command
+    echo "Invalid command. Use 'install', 'test', or 'URL_FILE'."
+    exit 1
+fi
