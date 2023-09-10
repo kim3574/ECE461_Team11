@@ -5,11 +5,11 @@ Project Members:
 4) Dongwon Kim
 
 Folder Structure:
-src/ - contains all the source code
-src/index.ts - entry point for the application
-src/controllers/ - contains api logic
-src/config/ - contains all environment variables, database connection, etc.
-src/models/ - defines the interfaces for api
-src/routes/ - contains all the routes
-src/utils/ - all general purpose functions that can be used anywhere in the application
-dist/ - contains all compiled javascript code
+src/ - contains all the source code/n
+src/index.ts - entry point for the application/n
+src/controllers/ - contains api logic/n
+src/config/ - contains all environment variables, database connection, etc./n
+src/models/ - defines the interfaces for api/n
+src/routes/ - contains all the routes/n
+src/utils/ - all general purpose functions that can be used anywhere in the application/n
+dist/ - contains all compiled javascript code/n
