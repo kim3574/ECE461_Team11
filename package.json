@@ -4,19 +4,25 @@
   "description": "Project Members: 1) Dev Thakkar 2) Jonathan Dow 3) Rohan Sagar (rsagar@purdue.edu) 4) Dongwon Kim",
   "main": "index.js",
   "scripts": {
-    "start": "tsc && node dist/index.js",
-    "dev": "ts-node src/index.ts"
+    "start": "npm run prettier-format && tsc && node dist/index.js",
+    "dev": "npm run prettier-format && nodemon --exec ts-node src/index.ts",
+    "prettier-format": "prettier --config .prettierrc 'src/**/*.ts' --write"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^20.6.0",
+    "nodemon": "^3.0.1",
+    "prettier": "^3.0.3",
     "ts-node": "^10.9.1",
     "typescript": "^5.2.2"
   },
   "dependencies": {
+    "@types/axios": "^0.14.0",
     "@types/express": "^4.17.17",
+    "axios": "^1.5.0",
+    "dotenv": "^16.3.1",
     "express": "^4.18.2"
   }
 }
