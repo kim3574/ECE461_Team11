@@ -1,0 +1,48 @@
+#!/bin/bash
+
+
+# Check for the command passed as an argument
+if [ "$1" == "install" ]; then
+    # Install Node.js dependencies
+    echo "Installing dependencies..."
+    
+
+    #npm install --save-dev jest
+    if [ $? -eq 0 ]; then
+        python3 log_file.py INFO "Dependencies installed successfully."
+        exit 0
+    else
+        python3 log_file.py ERROR "Failed to install dependencies."
+        exit 1
+    fi    
+    
+    
+    exit $?
+elif [ "$1" == "test" ]; then
+    # Log the start of the test suite
+    python3 log_file.py INFO "Running tests..."
+
+    # replace with your actual test command
+    python3 dummy_test.py
+
+    # Check if the tests passed
+    if [ $? -eq 0 ]; then
+        python3 log_file.py INFO "All tests passed."
+        exit 0
+    else
+        python3 log_file.py ERROR "Some tests failed."
+        exit 1
+    fi
+elif [ "$1" == "URL_FILE" ]; then
+    # ... (your URL_FILE code here)
+    python3 log_file.py INFO "URL_FILE"
+else
+    # Invalid command
+    python3 log_file.py ERROR "Invalid command. Use 'install', 'test', or 'URL_FILE'."
+    exit 1
+fi
+
+
+
+
+
