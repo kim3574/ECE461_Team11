@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-console.log("hello world");
-=======
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -20,4 +17,3 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server started on http://localhost:${PORT}`);
 });
->>>>>>> upstream/main
