@@ -41,7 +41,9 @@ if [ "$1" == "install" ]; then
 elif [ "$1" == "test" ]; then
     # Log the start of the test suite
     python3 log_file.py INFO "Running tests..."
-    python3 dummy_test.py
+    
+    # Run jest tests
+    npm test
 
     if [ $? -eq 0 ]; then
         python3 log_file.py INFO "All tests passed."
