@@ -1,6 +1,9 @@
 import { getRequest } from './api.utils';
 
-export const fetchRepositoryContributors = async (owner: string, repo: string) => {
+export const fetchRepositoryContributors = async (
+  owner: string,
+  repo: string
+) => {
   const endpoint = `/repos/${owner}/${repo}/contributors`;
   return await getRequest(endpoint);
 };
