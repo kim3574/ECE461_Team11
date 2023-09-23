@@ -6,7 +6,8 @@
   "scripts": {
     "start": "npm run prettier-format && tsc && node dist/index.js",
     "dev": "npm run prettier-format && nodemon --exec ts-node src/index.ts",
-    "prettier-format": "prettier --config .prettierrc 'src/**/*.ts' --write"
+    "prettier-format": "prettier --config .prettierrc 'src/**/*.ts' --write",
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
