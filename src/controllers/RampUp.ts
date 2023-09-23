@@ -5,7 +5,7 @@ import {
     fetchFirstCommitTime,
   } from '../utils/RampUpAPI';
   
-  const calculateRampUp = async (owner: string, repo: string) => {
+  export const calculateRampUp = async (owner: string, repo: string) => {
     try {
       // Fetch data from GitHub API
       const contributors = await fetchRepositoryContributors(owner, repo);
@@ -13,7 +13,6 @@ import {
       const forks = await fetchRepositoryForks(owner, repo);
       const firstCommitTime = await fetchFirstCommitTime(owner, repo);
   
-      // Sample weights
       const weights = {
         Contributors: 0.3,
         Stars: 0.2,
@@ -38,13 +37,12 @@ import {
         const normalizedTimeDifference = Math.min(timeDifference / maxTimeDifference, 1);
         rampUpScore += weights.FirstCommit * normalizedTimeDifference;
       }
-  
       console.log('Ramp-Up Score:', rampUpScore);
     } catch (error) {
       console.error('Error:', error);
     }
   };
-  const owner = "fill in later"
-  const repo = "fill in later"
+  const owner = "jonathandow"
+  const repo = "ECE461_Team11"
   calculateRampUp(owner, repo);
   
