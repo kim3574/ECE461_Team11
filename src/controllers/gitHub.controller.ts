@@ -14,7 +14,9 @@ export const getAllRepoBranches = async (
   repo: string
 ) => {
   try {
-    const response = await getRequest(`/repos/${owner}/${repo}/branches`);
+    const response = await getRequest(
+      `/repos/${owner}/${repo}/branches?state=closed`
+    );
     return parseBranchData(response);
   } catch (error: any) {
     console.log('Error:', error);
