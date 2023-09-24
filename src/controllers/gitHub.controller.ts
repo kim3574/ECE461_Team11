@@ -62,7 +62,7 @@ export const getAllRepoCommits = async (
     try {
       const response = await axios.get(branchUrl.url);
       console.log('RESPONSE!!', response);
-      const author = response.data?.commit?.author?.name;
+      const author = response.data?.user?.login;
       if (author) {
         commitCounts.set(author, (commitCounts.get(author) || 0) + 1);
       }
