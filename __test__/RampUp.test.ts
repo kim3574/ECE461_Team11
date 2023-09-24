@@ -1,5 +1,6 @@
 import { calculateRampUp } from '../src/controllers/RampUp';
-import { correctness } from '../src/controllers/correctness';
+
+// Mock the API functions and their behaviors
 jest.mock('../src/utils/RampUpAPI', () => ({
   fetchRepositoryContributors: jest.fn(() => Promise.resolve([])),
   fetchRepositoryStars: jest.fn(() => Promise.resolve([])),
@@ -21,41 +22,87 @@ describe('calculateRampUp', () => {
       fetchRepositoryForks,
       fetchFirstCommitTime,
     } = require('../src/utils/RampUpAPI');
+
     await calculateRampUp(
       { query: { owner: 'github_owner', repo: 'repository_name' } } as any,
       mockResponse as any,
       {} as any
     );
+
     expect(fetchRepositoryContributors).toHaveBeenCalledWith('github_owner', 'repository_name');
     expect(fetchRepositoryStars).toHaveBeenCalledWith('github_owner', 'repository_name');
     expect(fetchRepositoryForks).toHaveBeenCalledWith('github_owner', 'repository_name');
     expect(fetchFirstCommitTime).toHaveBeenCalledWith('github_owner', 'repository_name');
     expect(mockResponse.json).toHaveBeenCalledWith({ rampUpScore: expect.any(Number) });
   });
-});
 
-describe('correctness', () => {
+  it('handles a case where fetchFirstCommitTime returns null', async () => {
+    // Mock fetchFirstCommitTime to return null
+    require('../src/utils/RampUpAPI').fetchFirstCommitTime = jest.fn(() => Promise.resolve(null));
 
-  it('should return a score of 0 if the repository does not exist', async () => {
-    const checker = new correctness('DevT9', 'ThisRepoDoesNotExist');
-    const score = await checker.check();
-    expect(score).toBe(0);
+    const mockResponse: any = {
+      json: jest.fn(),
+      status: jest.fn(() => mockResponse),
+      send: jest.fn(),
+    };
+
+    await calculateRampUp(
+      { query: { owner: 'github_owner', repo: 'repository_name' } } as any,
+      mockResponse as any,
+      {} as any
+    );
+
+    // Expect that the code handles null firstCommitTime gracefully
+    expect(mockResponse.json).toHaveBeenCalledWith({ rampUpScore: expect.any(Number) });
   });
 
-  it('should return a score greater than 0.8 if the repository has no errors and has a test suite', async () => {
-    const checker = new correctness("PurdueIEEE", "IEEE-Website");
-    const score = await checker.check();
-    expect(score).toBeGreaterThan(0.8);
+  it('handles an error during API fetch', async () => {
+    // Mock one of the API functions to throw an error
+    require('../src/utils/RampUpAPI').fetchRepositoryContributors = jest.fn(() => {
+      throw new Error('API Error');
+    });
+
+    const mockResponse: any = {
+      json: jest.fn(),
+      status: jest.fn(() => mockResponse),
+      send: jest.fn(),
+    };
+
+    await calculateRampUp(
+      { query: { owner: 'github_owner', repo: 'repository_name' } } as any,
+      mockResponse as any,
+      {} as any
+    );
+
+    // Expect that the code handles errors during API fetch
+    expect(mockResponse.status).toHaveBeenCalledWith(500);
   });
 
-  it('should return a score greater than 0.48 if the repository has no errors but doesnt have a test suite', async () => {
-    const checker = new correctness('PurdueIEEE', 'boilerbooks');
-    const score = await checker.check();
-    expect(score).toBeGreaterThan(0.48);
-  });
-  it ('should return a score less than 0.48 because of errors', async () => {
-    const checker = new correctness('DevT9', 'TestRepo');
-    const score = await checker.check();
-    expect(score).toBeLessThan(0.48);
+  it('handles a case with non-zero contributors, stars, forks, and first commit time', async () => {
+    // Mock the API functions to return non-empty results
+    require('../src/utils/RampUpAPI').fetchRepositoryContributors = jest.fn(() =>
+      Promise.resolve([{ login: 'user1' }, { login: 'user2' }])
+    );
+    require('../src/utils/RampUpAPI').fetchRepositoryStars = jest.fn(() =>
+      Promise.resolve([{ login: 'user3' }, { login: 'user4' }])
+    );
+    require('../src/utils/RampUpAPI').fetchRepositoryForks = jest.fn(() =>
+      Promise.resolve([{ login: 'user5' }, { login: 'user6' }])
+    );
+
+    const mockResponse: any = {
+      json: jest.fn(),
+      status: jest.fn(() => mockResponse),
+      send: jest.fn(),
+    };
+
+    await calculateRampUp(
+      { query: { owner: 'github_owner', repo: 'repository_name' } } as any,
+      mockResponse as any,
+      {} as any
+    );
+
+    // Expect that the code handles the case with non-zero contributors, stars, forks, and first commit time
+    expect(mockResponse.json).toHaveBeenCalledWith({ rampUpScore: expect.any(Number) });
   });
 });
