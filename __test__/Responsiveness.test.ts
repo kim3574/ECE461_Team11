@@ -1,5 +1,5 @@
-import { Responsiveness } from '../Responsiveness';
-import * as responsivenessApi from '../../utils/responsivenessApi';
+import { Responsiveness } from '../src/controllers/Responsiveness';
+import * as responsivenessApi from '../src/utils/responsivenessApi';
 import { mocked } from 'jest-mock';
 
 // Mock the responsivenessApi methods

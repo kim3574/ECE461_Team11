@@ -1,4 +1,4 @@
-import { correctness } from './correctness';
+import { correctness } from '../src/controllers/correctness';
 
 describe('correctness', () => {
 
