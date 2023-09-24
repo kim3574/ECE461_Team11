@@ -28,7 +28,7 @@ export class correctness {
             });
         }
         catch (error: any) {
-            console.log(error);
+            //console.log(error);
             return 0;
         } 
         const { data: repoData } = await this.octokit.repos.get({
@@ -101,9 +101,7 @@ export class correctness {
                             //console.log(`Message: ${message.severity}, ${message.ruleId}`);
                             numFiles = numFiles + 1;
                             if (message.severity === 2) {
-                                console.log(`Voodoo: ${message.severity}, ${message.ruleId}`);
                                 this.errors = this.errors + 1;
-                                console.log(`Errors: ${this.errors}`);
                             } else if (message.severity === 1) {
                                 this.warnings = this.warnings + 1;
                             }
@@ -157,16 +155,8 @@ export class correctness {
         const error_prop = this.errors / (this.errors + this.warnings + this.securityIssues + 1);
         const warning_prop = this.warnings / (this.errors + this.warnings + this.securityIssues + 1);
         const security_prop = this.securityIssues / (this.errors + this.warnings + this.securityIssues + 1);
-        const eslintScore = (0.6 * (1 - (error_prop * 0.5) + (warning_prop * 0.3) + (security_prop* 0.2))) + (test_suite_checker * 0.4);
-        console.log(`errors: ${this.errors}, warnings: ${this.warnings}, security: ${this.securityIssues}, eslintScore: ${eslintScore}`);
-        
+        const eslintScore = (0.6 * (1 - (error_prop * 0.5) + (warning_prop * 0.3) + (security_prop* 0.2))) + (test_suite_checker * 0.4);        
         return eslintScore;
 
     }
 }
-
-
-const myCorrectness = new correctness("DevT9", "TestRepo");
-myCorrectness.check().then((score) => {
-    console.log(`Final score: ${score}`);
-});
