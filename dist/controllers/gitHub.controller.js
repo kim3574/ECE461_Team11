@@ -27,7 +27,7 @@ const getAllRepoCommits = async (req, res) => {
     if (!branches) {
         return res.status(400).json({ error: 'Error getting branches' });
     }
-    console.log('branches:', branches);
+    // console.log('branches:', branches);
     let parsedData = [];
     for (let branchUrl of branches) {
         try {
