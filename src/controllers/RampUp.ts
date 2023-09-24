@@ -5,7 +5,6 @@ import {
   fetchFirstCommitTime
 } from '../utils/RampUpAPI';
 import { Request, Response, NextFunction } from 'express';
-
 export const calculateRampUp = async (
   req: Request,
   res: Response,
@@ -26,12 +25,14 @@ export const calculateRampUp = async (
       Forks: 0.2,
       FirstCommit: 0.3
     };
+    const contributorsContribution = weights.Contributors * contributors.length;
+    const starsContribution = weights.Stars * stars.length;
+    const forksContribution = weights.Forks * forks.length;
 
     // Calculate the ramp-up score
     let rampUpScore =
-      weights.Contributors * contributors.length +
-      weights.Stars * stars.length +
-      weights.Forks * forks.length;
+      (contributorsContribution + starsContribution + forksContribution) /
+      (weights.Contributors + weights.Stars + weights.Forks);
 
     if (firstCommitTime) {
       // Calculate the time difference for the first commit in milliseconds
