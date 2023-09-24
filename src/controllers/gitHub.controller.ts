@@ -41,8 +41,16 @@ export const getAllCollaborators = async (req: Request, res: Response) => {
   }
 };
 
-export const getAllRepoCommits = async (owner: string, repo: string): Promise<Map<string, number> | null> => {
-  const branches = await getAllRepoBranches({} as Request, {} as Response, owner, repo);
+export const getAllRepoCommits = async (
+  owner: string,
+  repo: string
+): Promise<Map<string, number> | null> => {
+  const branches = await getAllRepoBranches(
+    {} as Request,
+    {} as Response,
+    owner,
+    repo
+  );
   if (!branches) {
     return null;
   }
@@ -51,6 +59,7 @@ export const getAllRepoCommits = async (owner: string, repo: string): Promise<Ma
   for (let branchUrl of branches) {
     try {
       const response = await axios.get(branchUrl.url);
+      console.log('RESPONSE!!', response);
       const author = response.data?.commit?.author?.name;
       if (author) {
         commitCounts.set(author, (commitCounts.get(author) || 0) + 1);
@@ -61,7 +70,6 @@ export const getAllRepoCommits = async (owner: string, repo: string): Promise<Ma
   }
   return commitCounts;
 };
-
 
 const parseBranchData = (branches: any[]): Branch[] => {
   const branchDetails: Branch[] = [];
@@ -75,36 +83,41 @@ const parseBranchData = (branches: any[]): Branch[] => {
   return branchDetails;
 };
 
-export const getPullRequestsByContributor = async (owner: string, repo: string) => {
-  const response = await getRequest(`/repos/${owner}/${repo}/pulls?state=closed`);
+export const getPullRequestsByContributor = async (
+  owner: string,
+  repo: string
+) => {
+  const response = await getRequest(
+    `/repos/${owner}/${repo}/pulls?state=closed`
+  );
   const pullRequests = response || [];
   const contributors: Map<string, number> = new Map();
-  
+
   pullRequests.forEach((pr: any) => {
     const author = pr.user.login;
     contributors.set(author, (contributors.get(author) || 0) + 1);
   });
-  
+
   return contributors;
 };
 
-export const getIssuesClosedByContributor = async (owner: string, repo: string) => {
-  const response = await getRequest(`/repos/${owner}/${repo}/issues?state=closed`);
+export const getIssuesClosedByContributor = async (
+  owner: string,
+  repo: string
+) => {
+  const response = await getRequest(
+    `/repos/${owner}/${repo}/issues?state=closed`
+  );
   const issues = response || [];
   const contributors: Map<string, number> = new Map();
-  
+
   issues.forEach((issue: any) => {
     const author = issue.user.login;
     contributors.set(author, (contributors.get(author) || 0) + 1);
   });
-  
+
   return contributors;
 };
-
-interface Contributor {
-  name: string;
-  commits: number;
-}
 
 export const calculateBusFactor = async (req: Request, res: Response) => {
   const { owner, repo } = req.query;
@@ -112,23 +125,40 @@ export const calculateBusFactor = async (req: Request, res: Response) => {
     return res.status(400).json({ error: 'Owner and repo name required!' });
   }
 
-  const allContributors: Map<string, { commits: number, prs: number, issues: number }> = new Map();
-
+  const allContributors: Map<
+    string,
+    { commits: number; prs: number; issues: number }
+  > = new Map();
   const commitContributors = await getAllRepoCommits(owner, repo);
+  console.log('Commit Contributors', commitContributors);
   commitContributors?.forEach((count, author) => {
-    const current = allContributors.get(author) || { commits: 0, prs: 0, issues: 0 };
+    const current = allContributors.get(author) || {
+      commits: 0,
+      prs: 0,
+      issues: 0
+    };
     allContributors.set(author, { ...current, commits: count });
   });
 
   const prContributors = await getPullRequestsByContributor(owner, repo);
+  console.log('PR contributors', prContributors);
   prContributors.forEach((count, author) => {
-    const current = allContributors.get(author) || { commits: 0, prs: 0, issues: 0 };
+    const current = allContributors.get(author) || {
+      commits: 0,
+      prs: 0,
+      issues: 0
+    };
     allContributors.set(author, { ...current, prs: count });
   });
 
   const issueContributors = await getIssuesClosedByContributor(owner, repo);
+  console.log('Issue contributors', issueContributors);
   issueContributors.forEach((count, author) => {
-    const current = allContributors.get(author) || { commits: 0, prs: 0, issues: 0 };
+    const current = allContributors.get(author) || {
+      commits: 0,
+      prs: 0,
+      issues: 0
+    };
     allContributors.set(author, { ...current, issues: count });
   });
 
@@ -136,26 +166,41 @@ export const calculateBusFactor = async (req: Request, res: Response) => {
   let totalContributors = 0;
 
   allContributors.forEach((contribution) => {
-    totalContributions += contribution.commits + contribution.prs + contribution.issues;
+    totalContributions +=
+      contribution.commits + contribution.prs + contribution.issues;
     totalContributors++;
   });
 
   let busFactor = 0;
   let runningTotal = 0;
 
-  const sortedContributors = Array.from(allContributors.entries()).sort((a, b) => {
-    return (b[1].commits + b[1].prs + b[1].issues) - (a[1].commits + a[1].prs + a[1].issues);
-  });
+  const sortedContributors = Array.from(allContributors.entries()).sort(
+    (a, b) => {
+      return (
+        b[1].commits +
+        b[1].prs +
+        b[1].issues -
+        (a[1].commits + a[1].prs + a[1].issues)
+      );
+    }
+  );
 
   for (let [, contributions] of sortedContributors) {
-    runningTotal += contributions.commits + contributions.prs + contributions.issues;
+    runningTotal +=
+      contributions.commits + contributions.prs + contributions.issues;
     busFactor++;
     if (runningTotal / totalContributions > 0.5) {
       break;
     }
   }
 
-  const formattedContributors = sortedContributors.map(([author, contributions]) => ({ author, ...contributions }));
+  const formattedContributors = sortedContributors.map(
+    ([author, contributions]) => ({ author, ...contributions })
+  );
 
-  return res.status(200).json({ busFactor, totalContributors, sortedContributors: formattedContributors });
+  return res.status(200).json({
+    busFactor,
+    totalContributors,
+    sortedContributors: formattedContributors
+  });
 };
