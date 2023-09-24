@@ -1,27 +1,35 @@
 import { calculateRampUp } from '../src/controllers/RampUp';
 
+jest.mock('../src/utils/RampUpAPI', () => ({
+  fetchRepositoryContributors: jest.fn(() => Promise.resolve([])),
+  fetchRepositoryStars: jest.fn(() => Promise.resolve([])),
+  fetchRepositoryForks: jest.fn(() => Promise.resolve([])),
+  fetchFirstCommitTime: jest.fn(() => Promise.resolve('2023-09-20T12:00:00Z')),
+}));
+
 describe('calculateRampUp', () => {
   it('calculates the ramp-up score correctly', async () => {
-    // Mock API calls 
-    const mockFetchRepositoryContributors = jest.fn(() => Promise.resolve([]));
-    const mockFetchRepositoryStars = jest.fn(() => Promise.resolve([]));
-    const mockFetchRepositoryForks = jest.fn(() => Promise.resolve([]));
-    const mockFetchFirstCommitTime = jest.fn(() => Promise.resolve('2023-09-20T12:00:00Z'));
+    const mockResponse: any = {
+      json: jest.fn(),
+      status: jest.fn(() => mockResponse),
+      send: jest.fn(),
+    };
 
-    // Mock the API functions to return the desired values
-    jest.mock('../src/utils/RampUpAPI', () => ({
-      fetchRepositoryContributors: mockFetchRepositoryContributors,
-      fetchRepositoryStars: mockFetchRepositoryStars,
-      fetchRepositoryForks: mockFetchRepositoryForks,
-      fetchFirstCommitTime: mockFetchFirstCommitTime,
-    }));
-
-    // Call the function to be tested
-    await calculateRampUp('github_owner', 'repository_name');
-
-    expect(mockFetchRepositoryContributors).toHaveBeenCalledWith('github_owner', 'repository_name');
-    expect(mockFetchRepositoryStars).toHaveBeenCalledWith('github_owner', 'repository_name');
-    expect(mockFetchRepositoryForks).toHaveBeenCalledWith('github_owner', 'repository_name');
-    expect(mockFetchFirstCommitTime).toHaveBeenCalledWith('github_owner', 'repository_name');
+    const {
+      fetchRepositoryContributors,
+      fetchRepositoryStars,
+      fetchRepositoryForks,
+      fetchFirstCommitTime,
+    } = require('../src/utils/RampUpAPI');
+    await calculateRampUp(
+      { query: { owner: 'github_owner', repo: 'repository_name' } } as any,
+      mockResponse as any,
+      {} as any
+    );
+    expect(fetchRepositoryContributors).toHaveBeenCalledWith('github_owner', 'repository_name');
+    expect(fetchRepositoryStars).toHaveBeenCalledWith('github_owner', 'repository_name');
+    expect(fetchRepositoryForks).toHaveBeenCalledWith('github_owner', 'repository_name');
+    expect(fetchFirstCommitTime).toHaveBeenCalledWith('github_owner', 'repository_name');
+    expect(mockResponse.json).toHaveBeenCalledWith({ rampUpScore: expect.any(Number) });
   });
 });
