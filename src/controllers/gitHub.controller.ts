@@ -2,6 +2,11 @@ import { Request, Response } from 'express';
 import { getRequest } from '../utils/api.utils';
 import axios from 'axios';
 
+interface Branch {
+  name: string;
+  url: string;
+}
+
 export const getAllRepoBranches = async (
   req: Request,
   res: Response,
@@ -17,38 +22,140 @@ export const getAllRepoBranches = async (
   }
 };
 
-export const getAllRepoCommits = async (req: Request, res: Response) => {
+export const getAllCollaborators = async (req: Request, res: Response) => {
+  const { owner, repo } = req.query;
+  console.log('owner:', owner, 'repo:', repo);
+  if (typeof owner !== 'string' || typeof repo !== 'string') {
+    return res.status(400).json({ error: 'Owner and repo name required!' });
+  }
+  try {
+    const response = await getRequest(`/repos/${owner}/${repo}/collaborators`);
+    if (response) {
+      return res.status(200).json({ message: 'Success!!!', response });
+    } else {
+      return res.status(400).json({ error: 'Error getting collaborators' });
+    }
+  } catch (error: any) {
+    console.log('Error:', error);
+    return res.status(400).json({ error: 'Error getting collabs!!' });
+  }
+};
+
+export const getAllRepoCommits = async (owner: string, repo: string): Promise<Map<string, number> | null> => {
+  const branches = await getAllRepoBranches({} as Request, {} as Response, owner, repo);
+  if (!branches) {
+    return null;
+  }
+
+  const commitCounts: Map<string, number> = new Map();
+  for (let branchUrl of branches) {
+    try {
+      const response = await axios.get(branchUrl.url);
+      const author = response.data?.commit?.author?.name;
+      if (author) {
+        commitCounts.set(author, (commitCounts.get(author) || 0) + 1);
+      }
+    } catch (error: any) {
+      console.error(`error with this url: ${branchUrl.url}!!!!`, error);
+    }
+  }
+  return commitCounts;
+};
+
+
+const parseBranchData = (branches: any[]): Branch[] => {
+  const branchDetails: Branch[] = [];
+  branches.forEach((item: any) => {
+    const branchName = item?.name;
+    const branchUrl = item?.commit?.url;
+    if (branchName && branchUrl) {
+      branchDetails.push({ name: branchName, url: branchUrl });
+    }
+  });
+  return branchDetails;
+};
+
+export const getPullRequestsByContributor = async (owner: string, repo: string) => {
+  const response = await getRequest(`/repos/${owner}/${repo}/pulls?state=closed`);
+  const pullRequests = response || [];
+  const contributors: Map<string, number> = new Map();
+  
+  pullRequests.forEach((pr: any) => {
+    const author = pr.user.login;
+    contributors.set(author, (contributors.get(author) || 0) + 1);
+  });
+  
+  return contributors;
+};
+
+export const getIssuesClosedByContributor = async (owner: string, repo: string) => {
+  const response = await getRequest(`/repos/${owner}/${repo}/issues?state=closed`);
+  const issues = response || [];
+  const contributors: Map<string, number> = new Map();
+  
+  issues.forEach((issue: any) => {
+    const author = issue.user.login;
+    contributors.set(author, (contributors.get(author) || 0) + 1);
+  });
+  
+  return contributors;
+};
+
+interface Contributor {
+  name: string;
+  commits: number;
+}
+
+export const calculateBusFactor = async (req: Request, res: Response) => {
   const { owner, repo } = req.query;
   if (typeof owner !== 'string' || typeof repo !== 'string') {
     return res.status(400).json({ error: 'Owner and repo name required!' });
   }
-  const branches = await getAllRepoBranches(req, res, owner, repo);
-  if (!branches) {
-    return res.status(400).json({ error: 'Error getting branches' });
-  }
-  console.log('branches:', branches);
-  let parsedData = [];
-  for (let branchUrl of branches) {
-    try {
-      const response = await axios.get(branchUrl);
-      // console.log("Response:", response.data);
-      if (response.data) {
-        parsedData.push(response.data?.commit?.author?.name);
-      }
-    } catch (error: any) {
-      console.error(`error with this url: ${branchUrl}!!!!`, error);
-    }
-  }
-  return res.status(200).json({ message: 'Success!!!', parsedData });
-};
 
-const parseBranchData = (branches: any[]): string[] => {
-  const branchUrls: string[] = [];
-  branches.forEach((item: any) => {
-    const url = item?.commit?.url;
-    if (url) {
-      branchUrls.push(url);
-    }
+  const allContributors: Map<string, { commits: number, prs: number, issues: number }> = new Map();
+
+  const commitContributors = await getAllRepoCommits(owner, repo);
+  commitContributors?.forEach((count, author) => {
+    const current = allContributors.get(author) || { commits: 0, prs: 0, issues: 0 };
+    allContributors.set(author, { ...current, commits: count });
   });
-  return branchUrls;
+
+  const prContributors = await getPullRequestsByContributor(owner, repo);
+  prContributors.forEach((count, author) => {
+    const current = allContributors.get(author) || { commits: 0, prs: 0, issues: 0 };
+    allContributors.set(author, { ...current, prs: count });
+  });
+
+  const issueContributors = await getIssuesClosedByContributor(owner, repo);
+  issueContributors.forEach((count, author) => {
+    const current = allContributors.get(author) || { commits: 0, prs: 0, issues: 0 };
+    allContributors.set(author, { ...current, issues: count });
+  });
+
+  let totalContributions = 0;
+  let totalContributors = 0;
+
+  allContributors.forEach((contribution) => {
+    totalContributions += contribution.commits + contribution.prs + contribution.issues;
+    totalContributors++;
+  });
+
+  let busFactor = 0;
+  let runningTotal = 0;
+
+  const sortedContributors = Array.from(allContributors.entries()).sort((a, b) => {
+    return (b[1].commits + b[1].prs + b[1].issues) - (a[1].commits + a[1].prs + a[1].issues);
+  });
+
+  for (let [, contributions] of sortedContributors) {
+    runningTotal += contributions.commits + contributions.prs + contributions.issues;
+    busFactor++;
+    if (runningTotal / totalContributions > 0.5) {
+      break;
+    }
+  }
+
+  const formattedContributors = sortedContributors.map(([author, contributions]) => ({ author, ...contributions }));
+
+  return res.status(200).json({ busFactor, totalContributors, sortedContributors: formattedContributors });
 };

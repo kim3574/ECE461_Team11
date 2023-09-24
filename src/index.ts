@@ -1,7 +1,6 @@
 import express, { Request, Response } from 'express';
 import gitHubRouter from './routers/gitHub.router';
 import dotenv from 'dotenv';
-
 dotenv.config();
 
 const app = express();
