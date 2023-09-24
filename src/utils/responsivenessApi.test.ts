@@ -2,7 +2,7 @@ import * as responsivenessApi from './responsivenessApi';
 
 // Mock the entire responsivenessApi module
 jest.mock('./responsivenessApi', () => ({
-  fetchIssueComments: jest.fn(),
+  fetchIssueComments: jest.fn()
   // ... other functions you might want to mock
 }));
 
