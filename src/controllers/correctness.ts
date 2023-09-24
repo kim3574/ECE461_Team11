@@ -14,14 +14,14 @@ export class correctness {
         // Initialize the Octokit client with an authentication token if needed
         config();
         const token = process.env.GITHUB_TOKEN;
-        /* this.octokit = new Octokit({
+        this.octokit = new Octokit({
             auth: token,
-        }); */
+        });
     }
 
     async check(): Promise<number> {
         // Get the repository information using the GitHub API
-        /* try {
+        try {
             const response = await this.octokit.repos.get({
                 owner: this.owner,
                 repo: this.repo,
@@ -40,9 +40,8 @@ export class correctness {
         const watchers = repoData.watchers_count; */
         //console.log(`Stars: ${stars}, Forks: ${forks}, Watchers: ${watchers}`);
         // Calculate a score based on the number of stars, forks, and watchers
-        /* const power = this.calculateLowestPowerOf10(stars, forks, watchers); */
-        //const githubScore = (stars + forks + watchers) / power;
-        const githubScore = 0.5;
+        const power = this.calculateLowestPowerOf10(stars, forks, watchers);
+        const githubScore = (stars + forks + watchers) / power;
         const eslintScore = await this.LinterandTestChecker();
         const finalScore = (0.2 * githubScore) + (0.8 * eslintScore);
         if (finalScore > 1) {
