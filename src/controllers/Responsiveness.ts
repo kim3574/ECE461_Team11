@@ -9,7 +9,7 @@ export class Responsiveness extends MetricParent {
   private commitMergeTime: number = 0;
 
   constructor(someSharedProperty: string, repoOwner: string, repoName: string) {
-    super(someSharedProperty, 'Responsive Maintainer', 'Dongwon Kim');
+    super(someSharedProperty, 'Responsive Maintainer', 'kim3574');
     this.repoOwner = repoOwner;
     this.repoName = repoName;
   }
@@ -47,10 +47,17 @@ export class Responsiveness extends MetricParent {
     }
   }
 
-  // Implement the abstract method from the parent class
   calculateMetric(): number {
+    // Calculate the total response time
+    const totalResponseTime = this.issueResponseTime + this.prResponseTime + this.commitMergeTime;
+  
+    // Calculate the number of non-zero response times
+    const count = [this.issueResponseTime, this.prResponseTime, this.commitMergeTime].filter(time => time > 0).length;
+  
     // Calculate the average response time
-    const averageResponseTime = (this.issueResponseTime + this.prResponseTime + this.commitMergeTime) / 3;
+    const averageResponseTime = count > 0 ? totalResponseTime / count : 0;
+  
     return averageResponseTime;
   }
+  
 }
