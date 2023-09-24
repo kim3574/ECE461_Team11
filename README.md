@@ -20,3 +20,8 @@ dist/ - contains all compiled javascript code  <br />
 3) Run `npm install` to install all the dependencies
 4) Run `npm run dev` to start the application in development mode (automatically restarts the server when changes are made - uses nodemon)
 5) Run `npm run start` to start the application in production mode (does not restart the server when changes are made)
+
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
